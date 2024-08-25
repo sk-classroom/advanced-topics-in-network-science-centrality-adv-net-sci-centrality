@@ -1,0 +1,61 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    #
+    # This is an example of how to grade the assignment
+    #
+    - name: Test Closeness Centrality
+      id: test_A
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Test Closeness Centrality
+        #
+        # setup-command is the command to install the dependencies. Include jupytext and nbconvert in the setup command.
+        #
+        setup-command: pip install jupytext nbconvert scipy numpy pandas python-igraph
+        #
+        # Command is the command to grade the assignment
+        #
+        command: bash grading-toolkit/grade_notebook.sh tests/test_01.py assignment/assignment.ipynb
+        timeout: 10 # Timeout in seconds
+        max-score: 5 # Max score
+    - name: Test Betweenness Centrality
+      id: test_B
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Test Betweenness Centrality
+        #
+        # Command is the command to grade the assignment
+        #
+        command: bash grading-toolkit/grade_notebook.sh tests/test_02.py assignment/assignment.ipynb
+        timeout: 10 # Timeout in seconds
+        max-score: 5 # Max score
+    - name: Test Robustness Index
+      id: test_C
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Test Robustness Index
+        #
+        # Command is the command to grade the assignment
+        #
+        command: bash grading-toolkit/grade_notebook.sh tests/test_03.py assignment/assignment.ipynb
+        timeout: 10 # Timeout in seconds
+        max-score: 10 # Max score
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        TEST-CONNECTED-COMPONENT_RESULTS: "${{steps.test-connected-component.outputs.result}}"
+      with:
+        runners: test_A,test_B,test_C
